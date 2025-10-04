@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "DuoAxs",
+    "slug": "duoaxs",
+    "scheme": "duoaxs",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#122017"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#122017"
+      }
+    }
+  }
+}

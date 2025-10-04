@@ -1,0 +1,13 @@
+{
+  "name": "@duoaxs/db",
+  "version": "0.1.0",
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "prisma": "^5.18.0",
+    "@prisma/client": "^5.18.0"
+  }
+}

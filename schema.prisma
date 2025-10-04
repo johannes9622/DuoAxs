@@ -1,0 +1,129 @@
+generator client { provider = "prisma-client-js" }
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { CLIENT PRO GYM_ADMIN }
+enum ProCategory { TRAINER NUTRITION_COACH CHEF }
+enum BookingStatus { PENDING CONFIRMED IN_PROGRESS COMPLETED CANCELED }
+enum SessionType { IN_GYM VIRTUAL IN_PERSON }
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  imageUrl      String?
+  role          Role     @default(CLIENT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  supabaseId    String?  @unique
+  stripeCustomerId String?
+
+  clientProfile ClientProfile?
+  proProfile    ProProfile?
+  gymAdmin      GymAdmin?
+
+  reviewsGiven  Review[] @relation("reviews_given")
+  reviewsRecv   Review[] @relation("reviews_recv")
+}
+
+model ClientProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  goals       Json
+  location    Json?
+  // simple favorites omitted to keep schema concise
+}
+
+model Gym {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  location      Json
+  amenities     Json
+  photos        Json
+  branding      Json?
+  business      Json?
+  stripeAccountId String?
+  payoutCadence String   @default("weekly")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  admins        GymAdmin[]
+  bookings      Booking[]
+}
+
+model GymAdmin {
+  id        String @id @default(cuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
+  gymId     String
+  gym       Gym    @relation(fields: [gymId], references: [id])
+}
+
+model ProProfile {
+  id             String       @id @default(cuid())
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id])
+  categories     ProCategory[]
+  bio            String?
+  credentials    Json
+  portfolio      Json
+  pricing        Json
+  services       Json
+  availability   Json
+  facilities     Json?
+  location       Json?
+  stripeAccountId String?
+  isLive         Boolean      @default(false)
+  liveUpdatedAt  DateTime?
+  payoutCadence  String       @default("instant")
+
+  bookings       Booking[]
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  clientId      String
+  client        User          @relation(fields: [clientId], references: [id])
+  proId         String?
+  pro           User?         @relation("pro_user", fields: [proId], references: [id])
+  gymId         String?
+  gym           Gym?          @relation(fields: [gymId], references: [id])
+
+  category      ProCategory
+  sessionType   SessionType
+  status        BookingStatus @default(PENDING)
+  scheduledFor  DateTime
+  durationMin   Int
+  priceCents    Int
+  bookingFeePct Float         @default(0.10)
+  platformPct   Float         @default(0.18)
+
+  clientQr      String?
+  proQr         String?
+  passcode      String?
+
+  stripePaymentIntentId String?
+  stripeTransferProId   String?
+  stripeTransferGymId   String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  fromId    String
+  from      User     @relation("reviews_given", fields: [fromId], references: [id])
+  toId      String
+  to        User     @relation("reviews_recv", fields: [toId], references: [id])
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
